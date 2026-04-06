@@ -71,7 +71,7 @@ pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
         config.test_generate(&states[0].system, 0);
 
         while (true) {
-            if (step(state, &candidate)) |nstate| {
+            if (step(state, &candidate, branch_info)) |nstate| {
                 state = nstate;
             }
 
@@ -100,7 +100,7 @@ pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
     }
 }
 
-fn step(start_state: *State, candidate: *Program) ?*State {
+fn step(start_state: *State, candidate: *Program, branch_info: [config.max_length]BranchInfo) ?*State {
     const ins = @import("instructions.zig").instructions;
     const insmap = @import("instructions.zig").instructionmap;
 
@@ -111,6 +111,17 @@ fn step(start_state: *State, candidate: *Program) ?*State {
     var total_cycles = start_state.total_cycles;
     var defines = start_state.defines;
     var pc = start_state.pc;
+
+    // Filter generally pointless op combinations
+    var range_start: usize = 0;
+    for (branch_info[0..], 0..) |info, i| {
+        if (info.is_target) {
+            range_start = i;
+        }
+        if (i == pc) {
+            if (op_filter.run(candidate.bytes[range_start..pc])) return null;
+        }
+    }
 
     while (true) {
         const last_instruction = (pc + 1 >= candidate.size) or (candidate.mask[pc + 1] == 0);

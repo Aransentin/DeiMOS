@@ -1,5 +1,5 @@
 // Largest program to investigate before giving up.
-pub const max_length = 12;
+pub const max_length = 10;
 
 // The maximum amount of branches allowed in the program. Does not count shadow instructions.
 pub const max_branches = 1;
@@ -51,7 +51,7 @@ pub const test_cases = 256;
 const System = @import("system.zig").System;
 
 pub fn test_generate(system: *System, idx: usize) void {
-    system.a = @intCast(idx & 0xff);
+    system.a = @intCast(idx);
 }
 
 pub fn test_run(in: *const System, out: *System) void {
