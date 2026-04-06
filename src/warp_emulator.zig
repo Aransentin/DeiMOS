@@ -12,7 +12,7 @@ const op_gen = @import("op_gen.zig");
 const op_filter = @import("op_filter.zig");
 
 // Static storage for candidates to send onwards to Phobos
-var candidate_mem: [1024 * 256]Program = undefined;
+var candidate_mem: [1024 * 512]Program = undefined;
 var candidates_n: usize = undefined;
 
 pub fn run(length: usize, branch_info: [config.max_length]BranchInfo) []const Program {
@@ -147,6 +147,11 @@ fn brute(length: usize, branch_info: [config.max_length]BranchInfo, prefilter: b
 }
 
 fn addCandidate(candidate: *Program) void {
+    if (candidates_n == candidate_mem.len) {
+        std.log.err("Too many candidates generated; bump candidate_mem!", .{});
+        std.os.linux.exit(1);
+    }
+
     candidate_mem[candidates_n] = candidate.*;
     candidates_n += 1;
 }
