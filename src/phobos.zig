@@ -33,12 +33,15 @@ pub fn successCallback(program: *const Program, worst_cycles: u32, total_cycles:
     const better_cycles_worst = (total_cycles < best_cycles_total);
     if (!better_size and !better_cycles_total and !better_cycles_worst) return;
 
-    best_size = if (best_size == null or program.size < best_size.?) program.size else best_size.?;
-    best_cycles_total = if (total_cycles < best_cycles_total) total_cycles else best_cycles_total;
-    best_cycles_worst = if (worst_cycles < best_cycles_worst) worst_cycles else best_cycles_worst;
-
-    //std.log.info("Program found: bytes: {}, cycles (total): {}, cycles (worst case): {}", .{ program.size, total_cycles, worst_cycles });
-    //program.print() catch unreachable;
+    if (best_size == null) {
+        best_size = program.size;
+        best_cycles_total = total_cycles;
+        best_cycles_worst = worst_cycles;
+    } else {
+        best_size = if (program.size < best_size.?) program.size else best_size.?;
+        best_cycles_total = if (total_cycles < best_cycles_total) total_cycles else best_cycles_total;
+        best_cycles_worst = if (worst_cycles < best_cycles_worst) worst_cycles else best_cycles_worst;
+    }
 
     client.sendSuccess(program.*, worst_cycles, total_cycles) catch {
         std.os.linux.exit(0);
