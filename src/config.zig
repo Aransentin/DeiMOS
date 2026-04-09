@@ -14,7 +14,7 @@ pub const branch_forward_only = false;
 pub const program_base = 0xc000;
 
 // How large the precomputed prefixes should be
-pub const prefix_size = 3;
+pub const prefix_size = 2;
 
 // The number of cycles to emulate before giving up.
 pub const max_cycles: usize = 256;
@@ -51,7 +51,7 @@ pub const allow_shadow_execution = true;
 pub const allowed_zp_memory = [_]u8{0x00};
 
 // allowed IMM-constants
-pub const allowed_imm_constants = [_]u8{};
+pub const allowed_imm_constants = [_]u8{ 0x00, 0x01, 0xff };
 
 // The number of test cases to evaluate
 pub const test_cases = 256;

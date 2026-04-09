@@ -21,14 +21,13 @@ The above example will (in addition to the master process) automatically spawn 8
 
 By default, the superoptimizer tries to find an optimal popcnt(A) program. Run it and it should eventually print:
 
-    info: Program found: bytes: 10, cycles (total): 21270, cycles (worst case): 94
-    C000 38    SEC
-    C001 6A    ROR A
-    C002 85    STA $00
-    C003 00
-    C004 65    ADC $00
-    C005 00
-    C006 06    ASL $00
-    C007 00
-    C008 D0    BNE $FA (C004)
-    C009 FA
+    info: Program found: bytes: 9, cycles (total): 15623, cycles (worst case): 68
+    C000 A2    LDX #$FF
+    C001 FF
+    C002 E8    INX
+    C003 0A    ASL A
+    C004 B0    BCS $FC (C002)
+    C005 FC
+    C006 D0    BNE $FB (C003)
+    C007 FB
+    C008 8A    TXA
