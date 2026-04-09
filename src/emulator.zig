@@ -119,7 +119,8 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             range_start = i;
         }
         if (i == pc) {
-            if (op_filter.run(candidate.bytes[range_start..pc])) return null;
+            if (op_filter.run(candidate.bytes[range_start .. pc + 1])) return null;
+            break;
         }
     }
 

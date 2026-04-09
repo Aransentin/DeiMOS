@@ -46,9 +46,9 @@ pub fn main(init: std.process.Init.Minimal) !void {
             // btemplate.debugPrint();
 
             const candidates = warp_emulator.run(length, btemplate.info());
-            //for (candidates) |cnd| {
+            // for (candidates) |cnd| {
             //    cnd.print() catch {};
-            //}
+            // }
 
             try server.serveCandidates(btemplate, candidates);
 

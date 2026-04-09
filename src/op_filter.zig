@@ -54,5 +54,11 @@ pub fn run(range: []const u8) bool {
         }
     }
 
+    // Pointless pairs
+    const ppairs = [_][2]u8{ .{ ins.tax.op, ins.txa.op }, .{ ins.tay.op, ins.tya.op }, .{ ins.txs.op, ins.tsx.op }, .{ ins.clc.op, ins.sec.op } };
+    for (ppairs) |pp| {
+        if ((l2o[0] == pp[0] or l2o[0] == pp[1]) and (l2o[1] == pp[0] or l2o[1] == pp[1])) return true;
+    }
+
     return false;
 }
