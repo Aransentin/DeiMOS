@@ -19,6 +19,7 @@ pub const Instruction = struct {
     mode: InstructionMode,
     op: u8,
     unofficial: bool = false,
+    implemented: bool = false,
     jam: bool = false,
     nop: bool = false,
     unstable: bool = false,
@@ -42,42 +43,49 @@ pub const instructions: struct {
         .name = "TAX",
         .mode = .implied,
         .op = 0xAA,
+        .implemented = true,
     },
 
     txa: Instruction = .{
         .name = "TXA",
         .mode = .implied,
         .op = 0x8A,
+        .implemented = true,
     },
 
     tay: Instruction = .{
         .name = "TAY",
         .mode = .implied,
         .op = 0xA8,
+        .implemented = true,
     },
 
     tya: Instruction = .{
         .name = "TYA",
         .mode = .implied,
         .op = 0x98,
+        .implemented = true,
     },
 
     tsx: Instruction = .{
         .name = "TSX",
         .mode = .implied,
         .op = 0xBA,
+        .implemented = true,
     },
 
     txs: Instruction = .{
         .name = "TXS",
         .mode = .implied,
         .op = 0x9A,
+        .implemented = true,
     },
 
     lda_imm: Instruction = .{
         .name = "LDA",
         .mode = .immediate,
         .op = 0xA9,
+        .implemented = true,
     },
 
     lda_zp: Instruction = .{
@@ -85,6 +93,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xA5,
         .readmem = true,
+        .implemented = true,
     },
 
     lda_zpx: Instruction = .{
@@ -133,6 +142,7 @@ pub const instructions: struct {
         .name = "LDX",
         .mode = .immediate,
         .op = 0xA2,
+        .implemented = true,
     },
 
     ldx_zp: Instruction = .{
@@ -140,6 +150,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xA6,
         .readmem = true,
+        .implemented = true,
     },
 
     ldx_zpy: Instruction = .{
@@ -147,6 +158,7 @@ pub const instructions: struct {
         .mode = .zeropage_y,
         .op = 0xB6,
         .readmem = true,
+        .implemented = true,
     },
 
     ldx_abs: Instruction = .{
@@ -161,12 +173,14 @@ pub const instructions: struct {
         .mode = .absolute_y,
         .op = 0xBE,
         .readmem = true,
+        .implemented = true,
     },
 
     ldy_imm: Instruction = .{
         .name = "LDY",
         .mode = .immediate,
         .op = 0xA0,
+        .implemented = true,
     },
 
     ldy_zp: Instruction = .{
@@ -174,6 +188,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xA4,
         .readmem = true,
+        .implemented = true,
     },
 
     ldy_zpx: Instruction = .{
@@ -202,6 +217,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x85,
         .writemem = true,
+        .implemented = true,
     },
 
     sta_zpx: Instruction = .{
@@ -251,6 +267,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x86,
         .writemem = true,
+        .implemented = true,
     },
 
     stx_zpy: Instruction = .{
@@ -258,6 +275,7 @@ pub const instructions: struct {
         .mode = .zeropage_y,
         .op = 0x96,
         .writemem = true,
+        .implemented = true,
     },
 
     stx_abs: Instruction = .{
@@ -272,6 +290,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x84,
         .writemem = true,
+        .implemented = true,
     },
 
     sty_zpx: Instruction = .{
@@ -320,24 +339,28 @@ pub const instructions: struct {
         .name = "INX",
         .mode = .implied,
         .op = 0xE8,
+        .implemented = true,
     },
 
     dex: Instruction = .{
         .name = "DEX",
         .mode = .implied,
         .op = 0xCA,
+        .implemented = true,
     },
 
     iny: Instruction = .{
         .name = "INY",
         .mode = .implied,
         .op = 0xC8,
+        .implemented = true,
     },
 
     dey: Instruction = .{
         .name = "DEY",
         .mode = .implied,
         .op = 0x88,
+        .implemented = true,
     },
 
     inc_zp: Instruction = .{
@@ -346,6 +369,7 @@ pub const instructions: struct {
         .op = 0xE6,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     inc_zpx: Instruction = .{
@@ -378,6 +402,7 @@ pub const instructions: struct {
         .op = 0xC6,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     dec_zpx: Instruction = .{
@@ -410,6 +435,7 @@ pub const instructions: struct {
         .name = "ADC",
         .mode = .immediate,
         .op = 0x69,
+        .implemented = true,
     },
 
     adc_zp: Instruction = .{
@@ -417,6 +443,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x65,
         .readmem = true,
+        .implemented = true,
     },
 
     adc_zpx: Instruction = .{
@@ -465,6 +492,7 @@ pub const instructions: struct {
         .name = "SBC",
         .mode = .immediate,
         .op = 0xE9,
+        .implemented = true,
     },
 
     sbc_zp: Instruction = .{
@@ -472,6 +500,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xE5,
         .readmem = true,
+        .implemented = true,
     },
 
     sbc_zpx: Instruction = .{
@@ -522,6 +551,7 @@ pub const instructions: struct {
         .name = "AND",
         .mode = .immediate,
         .op = 0x29,
+        .implemented = true,
     },
 
     and_zp: Instruction = .{
@@ -529,6 +559,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x25,
         .readmem = true,
+        .implemented = true,
     },
 
     and_zpx: Instruction = .{
@@ -577,6 +608,7 @@ pub const instructions: struct {
         .name = "EOR",
         .mode = .immediate,
         .op = 0x49,
+        .implemented = true,
     },
 
     eor_zp: Instruction = .{
@@ -584,6 +616,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x45,
         .readmem = true,
+        .implemented = true,
     },
 
     eor_zpx: Instruction = .{
@@ -632,6 +665,7 @@ pub const instructions: struct {
         .name = "ORA",
         .mode = .immediate,
         .op = 0x09,
+        .implemented = true,
     },
 
     ora_zp: Instruction = .{
@@ -639,6 +673,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x05,
         .readmem = true,
+        .implemented = true,
     },
 
     ora_zpx: Instruction = .{
@@ -689,6 +724,7 @@ pub const instructions: struct {
         .name = "ASL",
         .mode = .accumulator,
         .op = 0x0A,
+        .implemented = true,
     },
 
     asl_zp: Instruction = .{
@@ -697,6 +733,7 @@ pub const instructions: struct {
         .op = 0x06,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     asl_zpx: Instruction = .{
@@ -727,6 +764,7 @@ pub const instructions: struct {
         .name = "LSR",
         .mode = .accumulator,
         .op = 0x4A,
+        .implemented = true,
     },
 
     lsr_zp: Instruction = .{
@@ -735,6 +773,7 @@ pub const instructions: struct {
         .op = 0x46,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     lsr_zpx: Instruction = .{
@@ -765,6 +804,7 @@ pub const instructions: struct {
         .name = "ROL",
         .mode = .accumulator,
         .op = 0x2A,
+        .implemented = true,
     },
 
     rol_zp: Instruction = .{
@@ -773,6 +813,7 @@ pub const instructions: struct {
         .op = 0x26,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     rol_zpx: Instruction = .{
@@ -803,6 +844,7 @@ pub const instructions: struct {
         .name = "ROR",
         .mode = .accumulator,
         .op = 0x6A,
+        .implemented = true,
     },
 
     ror_zp: Instruction = .{
@@ -811,6 +853,7 @@ pub const instructions: struct {
         .op = 0x66,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     ror_zpx: Instruction = .{
@@ -843,42 +886,49 @@ pub const instructions: struct {
         .name = "CLC",
         .mode = .implied,
         .op = 0x18,
+        .implemented = true,
     },
 
     cld: Instruction = .{
         .name = "CLD",
         .mode = .implied,
         .op = 0xD8,
+        .implemented = true,
     },
 
     cli: Instruction = .{
         .name = "CLI",
         .mode = .implied,
         .op = 0x58,
+        .implemented = true,
     },
 
     clv: Instruction = .{
         .name = "CLV",
         .mode = .implied,
         .op = 0xB8,
+        .implemented = true,
     },
 
     sec: Instruction = .{
         .name = "SEC",
         .mode = .implied,
         .op = 0x38,
+        .implemented = true,
     },
 
     sed: Instruction = .{
         .name = "SED",
         .mode = .implied,
         .op = 0xF8,
+        .implemented = true,
     },
 
     sei: Instruction = .{
         .name = "SEI",
         .mode = .implied,
         .op = 0x78,
+        .implemented = true,
     },
 
     // Comparisons
@@ -887,6 +937,7 @@ pub const instructions: struct {
         .name = "CMP",
         .mode = .immediate,
         .op = 0xC9,
+        .implemented = true,
     },
 
     cmp_zp: Instruction = .{
@@ -894,6 +945,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xC5,
         .readmem = true,
+        .implemented = true,
     },
 
     cmp_zpx: Instruction = .{
@@ -942,6 +994,7 @@ pub const instructions: struct {
         .name = "CPX",
         .mode = .immediate,
         .op = 0xE0,
+        .implemented = true,
     },
 
     cpx_zp: Instruction = .{
@@ -949,6 +1002,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xE4,
         .readmem = true,
+        .implemented = true,
     },
 
     cpx_abs: Instruction = .{
@@ -963,6 +1017,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0xC0,
         .readmem = true,
+        .implemented = true,
     },
 
     cpy_zp: Instruction = .{
@@ -970,6 +1025,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0xC4,
         .readmem = true,
+        .implemented = true,
     },
 
     cpy_abs: Instruction = .{
@@ -985,48 +1041,56 @@ pub const instructions: struct {
         .name = "BCC",
         .mode = .relative,
         .op = 0x90,
+        .implemented = true,
     },
 
     bcs: Instruction = .{
         .name = "BCS",
         .mode = .relative,
         .op = 0xB0,
+        .implemented = true,
     },
 
     beq: Instruction = .{
         .name = "BEQ",
         .mode = .relative,
         .op = 0xF0,
+        .implemented = true,
     },
 
     bmi: Instruction = .{
         .name = "BMI",
         .mode = .relative,
         .op = 0x30,
+        .implemented = true,
     },
 
     bne: Instruction = .{
         .name = "BNE",
         .mode = .relative,
         .op = 0xD0,
+        .implemented = true,
     },
 
     bpl: Instruction = .{
         .name = "BPL",
         .mode = .relative,
         .op = 0x10,
+        .implemented = true,
     },
 
     bvc: Instruction = .{
         .name = "BVC",
         .mode = .relative,
         .op = 0x50,
+        .implemented = true,
     },
 
     bvs: Instruction = .{
         .name = "BVS",
         .mode = .relative,
         .op = 0x70,
+        .implemented = true,
     },
 
     // Jumps & Subroutines
@@ -1077,6 +1141,7 @@ pub const instructions: struct {
         .mode = .zeropage,
         .op = 0x24,
         .readmem = true,
+        .implemented = true,
     },
 
     bit_abs: Instruction = .{
@@ -1100,6 +1165,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0x4B,
         .unofficial = true,
+        .implemented = true,
     },
 
     anc_imm: Instruction = .{
@@ -1107,6 +1173,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0x0B,
         .unofficial = true,
+        .implemented = true,
     },
 
     anc_imm_2: Instruction = .{
@@ -1114,6 +1181,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0x2B,
         .unofficial = true,
+        .implemented = true,
     },
 
     ane_imm: Instruction = .{
@@ -1129,6 +1197,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0x6B,
         .unofficial = true,
+        .implemented = true,
     },
 
     dcp_zp: Instruction = .{
@@ -1201,6 +1270,7 @@ pub const instructions: struct {
         .unofficial = true,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     isc_zpx: Instruction = .{
@@ -1271,6 +1341,7 @@ pub const instructions: struct {
         .op = 0xA7,
         .unofficial = true,
         .readmem = true,
+        .implemented = true,
     },
 
     lax_zpy: Instruction = .{
@@ -1279,6 +1350,7 @@ pub const instructions: struct {
         .op = 0xB7,
         .unofficial = true,
         .readmem = true,
+        .implemented = true,
     },
 
     lax_abs: Instruction = .{
@@ -1287,6 +1359,7 @@ pub const instructions: struct {
         .op = 0xAF,
         .unofficial = true,
         .readmem = true,
+        .implemented = true,
     },
 
     lax_absy: Instruction = .{
@@ -1319,6 +1392,7 @@ pub const instructions: struct {
         .op = 0xAB,
         .unofficial = true,
         .unstable = true,
+        .implemented = true,
     },
 
     rla_zp: Instruction = .{
@@ -1328,6 +1402,7 @@ pub const instructions: struct {
         .unofficial = true,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     rla_zpx: Instruction = .{
@@ -1393,6 +1468,7 @@ pub const instructions: struct {
         .unofficial = true,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     rra_zpx: Instruction = .{
@@ -1457,6 +1533,7 @@ pub const instructions: struct {
         .op = 0x87,
         .unofficial = true,
         .writemem = true,
+        .implemented = true,
     },
 
     sax_zpy: Instruction = .{
@@ -1465,6 +1542,7 @@ pub const instructions: struct {
         .op = 0x97,
         .unofficial = true,
         .writemem = true,
+        .implemented = true,
     },
 
     sax_abs: Instruction = .{
@@ -1488,6 +1566,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0xCB,
         .unofficial = true,
+        .implemented = true,
     },
 
     sha_absy: Instruction = .{
@@ -1533,6 +1612,7 @@ pub const instructions: struct {
         .unofficial = true,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     slo_zpx: Instruction = .{
@@ -1596,6 +1676,7 @@ pub const instructions: struct {
         .unofficial = true,
         .readmem = true,
         .writemem = true,
+        .implemented = true,
     },
 
     sre_zpx: Instruction = .{
@@ -1666,6 +1747,7 @@ pub const instructions: struct {
         .mode = .immediate,
         .op = 0xEB,
         .unofficial = true,
+        .implemented = true,
     },
 
     nop_2: Instruction = .{

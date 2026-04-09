@@ -7,6 +7,9 @@ const Program = @import("program.zig").Program;
 const BranchTemplate = @import("branch_template.zig").BranchTemplate;
 const warp_emulator = @import("warp_emulator.zig");
 
+const tables = @import("tables.zig");
+const instructions = @import("instructions.zig");
+
 pub fn main(init: std.process.Init.Minimal) !void {
     limits.init();
     signals.init();
@@ -34,14 +37,19 @@ pub fn main(init: std.process.Init.Minimal) !void {
         }
     }
 
-    for (0..config.max_length + 1) |length| {
+    const size_start = if (config.min_branches == 0) 0 else 1 + config.min_branches * 2;
+    for (size_start..config.max_length + 1) |length| {
         std.log.info("Program size: {}", .{length});
 
         var btemplate = BranchTemplate.init(@intCast(length));
         while (true) {
-            //btemplate.debugPrint();
+            // btemplate.debugPrint();
 
             const candidates = warp_emulator.run(length, btemplate.info());
+            //for (candidates) |cnd| {
+            //    cnd.print() catch {};
+            //}
+
             try server.serveCandidates(btemplate, candidates);
 
             if (signals.flag) return;

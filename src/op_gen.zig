@@ -75,14 +75,8 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
         },
         .implied => {
             const ops = [_]u8{
-                ins.tax.op,
                 ins.txa.op,
-                ins.tay.op,
                 ins.tya.op,
-                ins.inx.op,
-                ins.dex.op,
-                ins.iny.op,
-                ins.dey.op,
                 ins.clc.op,
                 ins.clv.op,
                 ins.sec.op,
@@ -90,7 +84,16 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
                 ins.lsr.op,
                 ins.rol.op,
                 ins.ror.op,
-            };
+            } ++ (if (config.allow_x) [_]u8{
+                ins.tax.op,
+                ins.inx.op,
+                ins.dex.op,
+            } else [0]u8{}) ++ (if (config.allow_y) [_]u8{
+                ins.tay.op,
+                ins.iny.op,
+                ins.dey.op,
+            } else [0]u8{});
+
             if (state.op_meta0 == ops.len) {
                 if (last_instruction or arg0_is_branch) {
                     state.op_class = .finished;
@@ -112,8 +115,6 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
         .immediate => {
             const ops = [_]u8{
                 ins.lda_imm.op,
-                ins.ldx_imm.op,
-                ins.ldy_imm.op,
                 ins.adc_imm.op,
                 ins.sbc_imm.op,
                 ins.cmp_imm.op,
@@ -122,17 +123,22 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
                 ins.and_imm.op,
                 ins.eor_imm.op,
                 ins.ora_imm.op,
-            } ++ if (config.allow_unofficial_opcodes) [_]u8{
+            } ++ (if (config.allow_x) [_]u8{
+                ins.ldx_imm.op,
+            } else [0]u8{}) ++ (if (config.allow_y) [_]u8{
+                ins.ldy_imm.op,
+            } else [0]u8{}) ++ (if (config.allow_unofficial_opcodes) [_]u8{
                 ins.alr_imm.op,
                 ins.arr_imm.op,
+            } else [0]u8{}) ++ (if (config.allow_unofficial_opcodes and config.allow_x) [_]u8{
                 ins.sbx_imm.op,
-            } else [0]u8{} ++ if (config.allow_unofficial_opcodes and config.allow_ANC_0x0B) [_]u8{
+            } else [0]u8{}) ++ (if (config.allow_unofficial_opcodes and config.allow_ANC_0x0B) [_]u8{
                 ins.anc_imm.op,
-            } else [0]u8{} ++ if (config.allow_unofficial_opcodes and config.allow_ANC_0x2B) [_]u8{
+            } else [0]u8{}) ++ (if (config.allow_unofficial_opcodes and config.allow_ANC_0x2B) [_]u8{
                 ins.anc_imm_2.op,
-            } else [0]u8{} ++ if (config.allow_unofficial_opcodes and config.allow_SBC_0xEB) [_]u8{
+            } else [0]u8{}) ++ (if (config.allow_unofficial_opcodes and config.allow_SBC_0xEB) [_]u8{
                 ins.sbc_imm_2.op,
-            } else [0]u8{};
+            } else [0]u8{});
 
             const args_allowed: []const u8 = if (arg0_is_target) &tables.allowed_imm_constants_trg else &tables.allowed_imm_constants;
 
@@ -168,8 +174,6 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
         .zeropage_read => {
             const ops = [_]u8{
                 ins.lda_zp.op,
-                ins.ldx_zp.op,
-                ins.ldy_zp.op,
                 ins.adc_zp.op,
                 ins.sbc_zp.op,
                 ins.cmp_zp.op,
@@ -179,9 +183,13 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
                 ins.and_zp.op,
                 ins.eor_zp.op,
                 ins.ora_zp.op,
-            } ++ if (config.allow_unofficial_opcodes) [_]u8{
+            } ++ (if (config.allow_x) [_]u8{
+                ins.ldx_zp.op,
+            } else [0]u8{}) ++ (if (config.allow_y) [_]u8{
+                ins.ldy_zp.op,
+            } else [0]u8{}) ++ (if (config.allow_unofficial_opcodes and config.allow_x) [_]u8{
                 ins.lax_zp.op,
-            } else [0]u8{};
+            } else [0]u8{});
 
             const args_allowed: []const u8 = if (arg0_is_target) &tables.allowed_zp_memory_trg else &config.allowed_zp_memory;
 
@@ -224,7 +232,7 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
                 ins.lsr_zp.op,
                 ins.rol_zp.op,
                 ins.ror_zp.op,
-            } ++ if (config.allow_unofficial_opcodes) [_]u8{
+            } ++ (if (config.allow_unofficial_opcodes) [_]u8{
                 ins.dcp_zp.op,
                 ins.isc_zp.op,
                 ins.rla_zp.op,
@@ -232,7 +240,7 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
                 ins.sax_zp.op,
                 ins.slo_zp.op,
                 ins.sre_zp.op,
-            } else [0]u8{};
+            } else [0]u8{});
 
             const args_allowed: []const u8 = if (arg0_is_target) &tables.allowed_zp_memory_trg else &config.allowed_zp_memory;
 
@@ -265,16 +273,16 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
             return true;
         },
         .zeropage_y_read => {
-            if (!config.allow_zp_xy) {
+            if (!config.allow_zp_xy or !config.allow_x) {
                 state.op_class = .zeropage_y_write;
                 continue;
             }
 
             const ops = [_]u8{
                 ins.ldx_zpy.op,
-            } ++ if (config.allow_unofficial_opcodes) [_]u8{
+            } ++ (if (config.allow_unofficial_opcodes) [_]u8{
                 ins.lax_zpy.op,
-            } else [0]u8{};
+            } else [0]u8{});
 
             const args_allowed: []const u8 = if (arg0_is_target) &tables.allowed_zp_memory_trg else &config.allowed_zp_memory;
 
@@ -315,16 +323,16 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
             return true;
         },
         .zeropage_y_write => {
-            if (!config.allow_zp_xy) {
+            if (!config.allow_zp_xy or !config.allow_y) {
                 state.op_class = .finished;
                 continue;
             }
 
             const ops = [_]u8{
                 ins.stx_zpy.op,
-            } ++ if (config.allow_unofficial_opcodes) [_]u8{
+            } ++ (if (config.allow_unofficial_opcodes) [_]u8{
                 ins.sax_zpy.op,
-            } else [0]u8{};
+            } else [0]u8{});
 
             const args_allowed: []const u8 = if (arg0_is_target) &tables.allowed_zp_memory_trg else &config.allowed_zp_memory;
 

@@ -2,7 +2,10 @@
 pub const max_length = 10;
 
 // The maximum amount of branches allowed in the program. Does not count shadow instructions.
-pub const max_branches = 1;
+pub const max_branches = 2;
+
+// The minimum amount of branches in the program.
+pub const min_branches = 0;
 
 // If branches are forbidden to branch backwards. Prevents loops if enabled.
 pub const branch_forward_only = false;
@@ -15,6 +18,12 @@ pub const prefix_size = 3;
 
 // The number of cycles to emulate before giving up.
 pub const max_cycles: usize = 256;
+
+// Allow generation and exection of ops that write to the X register
+pub const allow_x = true;
+
+// Allow generation and exection of ops that write to the Y register
+pub const allow_y = true;
 
 // Allow generation and execution of instructions that affect the stack. Unimplemented for now.
 pub const allow_stack = false;

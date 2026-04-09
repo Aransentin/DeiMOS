@@ -8,7 +8,17 @@ pub const Defines = struct {
     zero: u1 = 0,
     overflow: u1 = 0,
     negative: u1 = 0,
-    mem: [tables.memory_size]u1 = [_]u1{0} ** tables.memory_size,
+    memory: [tables.memory_size]u1 = [_]u1{0} ** tables.memory_size,
+
+    pub fn getMem(self: *Defines, p: u8) bool {
+        if (tables.memory_size == 0) return false;
+        return self.memory[tables.zp_memory_map[p]] == 1;
+    }
+
+    pub fn setMem(self: *Defines, p: u8) void {
+        if (tables.memory_size == 0) return;
+        self.memory[tables.zp_memory_map[p]] = 1;
+    }
 };
 
 pub const Flags = packed struct(u8) {
@@ -35,6 +45,7 @@ pub const System = struct {
     mem: [tables.memory_size]u8 = [_]u8{0} ** tables.memory_size,
 
     pub fn readZp(self: *const System, addr: u8) u8 {
+        if (tables.memory_size == 0) unreachable;
         if (!tables.canReadZp(addr)) unreachable;
 
         const offset = tables.zp_memory_map[addr];
@@ -42,6 +53,7 @@ pub const System = struct {
     }
 
     pub fn writeZp(self: *System, addr: u8, data: u8) void {
+        if (tables.memory_size == 0) unreachable;
         if (!tables.canWriteZp(addr)) unreachable;
         const offset = tables.zp_memory_map[addr];
         self.mem[offset] = data;

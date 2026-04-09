@@ -3,7 +3,7 @@ const config = @import("config.zig");
 
 pub const BranchTemplate = struct {
     size: u8,
-    branches_n: u8 = 0,
+    branches_n: u8 = config.min_branches,
     branches: [config.max_branches][2]u8 = undefined,
 
     pub const Info = struct {

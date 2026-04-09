@@ -27,7 +27,7 @@ pub const base_defines: Defines = blk: {
     def.overflow = if (test_system.flags.overflow != 0) 1 else 0;
     def.negative = if (test_system.flags.negative != 0) 1 else 0;
 
-    for (def.mem[0..], 0..) |*mem, i| {
+    for (def.memory[0..], 0..) |*mem, i| {
         mem.* = if (test_system.mem[i] != 0) 1 else 0;
     }
 
@@ -53,8 +53,8 @@ pub const base_defines: Defines = blk: {
     def.overflow = if (test_system.flags.overflow != 1) 1 else def.overflow;
     def.negative = if (test_system.flags.negative != 1) 1 else def.negative;
 
-    for (def.mem[0..], 0..) |*mem, i| {
-        mem.* = if (test_system.mem[i] != 1) 1 else def.mem[i];
+    for (def.memory[0..], 0..) |*mem, i| {
+        mem.* = if (test_system.mem[i] != 1) 1 else def.memory[i];
     }
 
     break :blk def;
@@ -62,6 +62,7 @@ pub const base_defines: Defines = blk: {
 
 fn opIsValidToExecute(op: u8) bool {
     const info = instructionmap[op];
+    if (!info.implemented) return false;
     if (info.jam or info.nop or info.unstable) return false;
     if (!config.allow_unofficial_opcodes and info.unofficial) return false;
 

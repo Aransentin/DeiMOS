@@ -106,15 +106,13 @@ pub const Warp = struct {
             hasher.update(std.mem.asBytes(&sys.y));
             hasher.update(std.mem.asBytes(&sys.flags));
 
-            for (sys.mem[0..], self.defines.mem[0..]) |zp, dzp| {
+            for (sys.mem[0..], self.defines.memory[0..]) |zp, dzp| {
                 if (dzp == 0) continue;
                 hasher.update(std.mem.asBytes(&zp));
             }
         }
 
-        // 354
-        // in practice I can mask with 0x000000000000ffff before it starts colliding
-        return hasher.final(); // & 0x000000000000ffff;
+        return hasher.final();
     }
 };
 

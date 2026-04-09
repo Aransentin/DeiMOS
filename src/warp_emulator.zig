@@ -12,7 +12,7 @@ const op_gen = @import("op_gen.zig");
 const op_filter = @import("op_filter.zig");
 
 // Static storage for candidates to send onwards to Phobos
-var candidate_mem: [1024 * 512]Program = undefined;
+var candidate_mem: []Program = &[0]Program{};
 var candidates_n: usize = undefined;
 
 pub fn run(length: usize, branch_info: [config.max_length]BranchInfo) []const Program {
@@ -148,8 +148,10 @@ fn brute(length: usize, branch_info: [config.max_length]BranchInfo, prefilter: b
 
 fn addCandidate(candidate: *Program) void {
     if (candidates_n == candidate_mem.len) {
-        std.log.err("Too many candidates generated; bump candidate_mem!", .{});
-        std.os.linux.exit(1);
+        candidate_mem = std.heap.page_allocator.realloc(candidate_mem, candidate_mem.len + 1024 * 1024) catch {
+            std.log.err("Out of memory: Failed reallocating candidate_mem!", .{});
+            std.os.linux.exit(1);
+        };
     }
 
     candidate_mem[candidates_n] = candidate.*;
@@ -299,6 +301,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             // Implieds
 
             ins.tax.op => {
+                if (!config.allow_x) return null;
                 if (warp.defines.a == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
@@ -327,6 +330,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 warp.pc += 1;
             },
             ins.tay.op => {
+                if (!config.allow_y) return null;
                 if (warp.defines.a == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
@@ -356,6 +360,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.inx.op => {
+                if (!config.allow_x) return null;
                 if (warp.defines.x == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
@@ -370,6 +375,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.dex.op => {
+                if (!config.allow_x) return null;
                 if (warp.defines.x == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
@@ -384,6 +390,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.iny.op => {
+                if (!config.allow_y) return null;
                 if (warp.defines.y == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
@@ -398,6 +405,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.dey.op => {
+                if (!config.allow_y) return null;
                 if (warp.defines.y == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
@@ -671,8 +679,6 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             // Immediates
 
             ins.lda_imm.op => {
-                if (last_instruction) return null;
-
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     sys.a = arg0;
                     sys.setZN(sys.a);
@@ -686,8 +692,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.ldx_imm.op => {
-                if (last_instruction) return null;
-
+                if (!config.allow_x) return null;
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     sys.x = arg0;
                     sys.setZN(sys.x);
@@ -701,8 +706,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.ldy_imm.op => {
-                if (last_instruction) return null;
-
+                if (!config.allow_y) return null;
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     sys.y = arg0;
                     sys.setZN(sys.y);
@@ -945,7 +949,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
             ins.lda_zp.op => {
                 if (!tables.canReadZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     sys.a = sys.readZp(arg0);
@@ -961,8 +965,9 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.ldx_zp.op => {
+                if (!config.allow_x) return null;
                 if (!tables.canReadZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     sys.x = sys.readZp(arg0);
@@ -978,8 +983,9 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             },
 
             ins.ldy_zp.op => {
+                if (!config.allow_y) return null;
                 if (!tables.canReadZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     sys.y = sys.readZp(arg0);
@@ -998,7 +1004,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
                 if (warp.defines.carry == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1022,7 +1028,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
                 if (warp.defines.carry == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = ~sys.readZp(arg0);
@@ -1045,7 +1051,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.cmp_zp.op => {
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1065,7 +1071,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.bit_zp.op => {
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1086,7 +1092,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.and_zp.op => {
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1103,7 +1109,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.eor_zp.op => {
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1120,7 +1126,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.ora_zp.op => {
                 if (!tables.canReadZp(arg0)) return null;
                 if (warp.defines.a == 0) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1137,8 +1143,9 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             // Zeropage, read, unofficial
 
             ins.lax_zp.op => {
+                if (!config.allow_x) return null;
                 if (!tables.canReadZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1165,7 +1172,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                     sys.writeZp(arg0, sys.a);
                 }
 
-                warp.defines.mem[tables.zp_memory_map[arg0]] = 1;
+                warp.defines.setMem(arg0);
                 cycles += 3;
                 warp.pc += 2;
             },
@@ -1178,7 +1185,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                     sys.writeZp(arg0, sys.x);
                 }
 
-                warp.defines.mem[tables.zp_memory_map[arg0]] = 1;
+                warp.defines.setMem(arg0);
                 cycles += 3;
                 warp.pc += 2;
             },
@@ -1191,14 +1198,14 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                     sys.writeZp(arg0, sys.y);
                 }
 
-                warp.defines.mem[tables.zp_memory_map[arg0]] = 1;
+                warp.defines.setMem(arg0);
                 cycles += 3;
                 warp.pc += 2;
             },
 
             ins.inc_zp.op => {
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0) +% 1;
@@ -1212,7 +1219,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
             ins.dec_zp.op => {
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0) -% 1;
@@ -1226,7 +1233,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
             ins.asl_zp.op => {
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     var byte = sys.readZp(arg0);
@@ -1245,7 +1252,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
             ins.lsr_zp.op => {
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     var byte = sys.readZp(arg0);
@@ -1265,7 +1272,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.rol_zp.op => {
                 if (warp.defines.carry == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     var byte = sys.readZp(arg0);
@@ -1287,7 +1294,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.ror_zp.op => {
                 if (warp.defines.carry == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     var byte = sys.readZp(arg0);
@@ -1311,7 +1318,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.dcp_zp.op => {
                 if (warp.defines.a == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0) -% 1;
@@ -1333,7 +1340,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.isc_zp.op => {
                 if (warp.defines.carry == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0) +% 1;
@@ -1360,7 +1367,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 if (warp.defines.a == 0) return null;
                 if (warp.defines.carry == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const byte = sys.readZp(arg0);
@@ -1382,7 +1389,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 if (warp.defines.a == 0) return null;
                 if (warp.defines.carry == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     // ROR
@@ -1418,7 +1425,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                     sys.writeZp(arg0, sys.a & sys.x);
                 }
 
-                warp.defines.mem[tables.zp_memory_map[arg0]] = 1;
+                warp.defines.setMem(arg0);
                 cycles += 3;
                 warp.pc += 2;
             },
@@ -1426,7 +1433,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.slo_zp.op => {
                 if (warp.defines.a == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     // ASL
@@ -1450,7 +1457,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             ins.sre_zp.op => {
                 if (warp.defines.a == 0) return null;
                 if (!tables.canWriteZp(arg0)) return null;
-                if (warp.defines.mem[tables.zp_memory_map[arg0]] == 0) return null;
+                if (!warp.defines.getMem(arg0)) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     // LSR
@@ -1474,13 +1481,14 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             // Zeropage Y, read
 
             ins.ldx_zpy.op => {
+                if (!config.allow_x) return null;
                 if (warp.defines.y == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const arg_adj = arg0 +% sys.y;
 
                     if (!tables.canReadZp(arg_adj)) return null;
-                    if (warp.defines.mem[tables.zp_memory_map[arg_adj]] == 0) return null;
+                    if (!warp.defines.getMem(arg_adj)) return null;
 
                     sys.x = sys.readZp(arg_adj);
                     sys.setZN(sys.x);
@@ -1497,13 +1505,14 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             // Zeropage Y, read, unofficial
 
             ins.lax_zpy.op => {
+                if (!config.allow_x) return null;
                 if (warp.defines.y == 0) return null;
 
                 for (warp.systems[0..warp.systems_n]) |*sys| {
                     const arg_adj = arg0 +% sys.y;
 
                     if (!tables.canReadZp(arg_adj)) return null;
-                    if (warp.defines.mem[tables.zp_memory_map[arg_adj]] == 0) return null;
+                    if (!warp.defines.getMem(arg_adj)) return null;
 
                     sys.a = sys.readZp(arg_adj);
                     sys.x = sys.a;
@@ -1532,7 +1541,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                     sys.writeZp(arg_adj, sys.x);
 
                     // Not ideal... Can lead to false positives -> relevant to all similar instructions
-                    warp.defines.mem[tables.zp_memory_map[arg_adj]] = 1;
+                    warp.defines.setMem(arg_adj);
                 }
 
                 cycles += 4;
@@ -1552,7 +1561,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                     if (!tables.canWriteZp(arg_adj)) return null;
                     sys.writeZp(arg_adj, sys.a & sys.x);
 
-                    warp.defines.mem[tables.zp_memory_map[arg_adj]] = 1;
+                    warp.defines.setMem(arg_adj);
                 }
 
                 cycles += 4;
