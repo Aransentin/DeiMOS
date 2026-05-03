@@ -8,7 +8,7 @@ pub const Defines = struct {
     zero: u1 = 0,
     overflow: u1 = 0,
     negative: u1 = 0,
-    memory: [tables.memory_size]u1 = [_]u1{0} ** tables.memory_size,
+    memory: [tables.memory_size]u1 = @splat(0),
 
     pub fn getMem(self: *Defines, p: u8) bool {
         if (tables.memory_size == 0) return false;
@@ -42,7 +42,7 @@ pub const System = struct {
     x: u8 = 0,
     y: u8 = 0,
     flags: Flags = .{},
-    mem: [tables.memory_size]u8 = [_]u8{0} ** tables.memory_size,
+    mem: [tables.memory_size]u8 = @splat(0),
 
     pub fn readZp(self: *const System, addr: u8) u8 {
         if (tables.memory_size == 0) unreachable;

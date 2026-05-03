@@ -42,7 +42,7 @@ pub fn init() !void {
 
     const addr = std.posix.sockaddr.in6{
         .port = std.mem.nativeToBig(u16, 6502),
-        .addr = [_]u8{0} ** 16,
+        .addr = @splat(0),
         .flowinfo = 0,
         .scope_id = 0,
     };

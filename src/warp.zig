@@ -16,7 +16,7 @@ pub const Warp = struct {
     restart_iteration: u32 = 0,
 
     tests_complete_n: u32,
-    tests_complete: [config.test_cases]u1 = [_]u1{0} ** config.test_cases,
+    tests_complete: [config.test_cases]u1 = @splat(0),
 
     pub fn initTestIndices(self: *Warp) void {
         for (self.systems[0..self.systems_n], 0..) |*sys, idx| {

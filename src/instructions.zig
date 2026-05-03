@@ -2064,7 +2064,7 @@ pub const instructions: struct {
 } = .{};
 
 pub const instructionmap = blk: {
-    var ops = [_]Instruction{.{ .name = "", .mode = .accumulator, .op = 0 }} ** 256;
+    var ops: [256]Instruction = @splat(.{ .name = "", .mode = .accumulator, .op = 0 });
     for (@typeInfo(@TypeOf(instructions)).@"struct".fields) |field| {
         const value = field.defaultValue().?;
         if (ops[value.op].op != 0) @compileError("Multiple instructions with same op");

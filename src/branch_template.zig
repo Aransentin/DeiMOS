@@ -53,7 +53,7 @@ pub const BranchTemplate = struct {
     }
 
     fn setFirstValidTarget(self: *BranchTemplate, branch: u8) void {
-        var pb = [_]u8{0} ** (config.max_length + 1);
+        var pb: [config.max_length + 1]u8 = @splat(0);
         for (self.branches[0..self.branches_n]) |br| {
             pb[br[0] + 1] = 1;
         }
@@ -71,7 +71,7 @@ pub const BranchTemplate = struct {
     fn incrementTarget(self: *BranchTemplate, branch: u8) bool {
         if (self.branches[branch][1] > self.size) return false;
 
-        var pb = [_]u8{0} ** (config.max_length + 1);
+        var pb: [config.max_length + 1]u8 = @splat(0);
         for (self.branches[0..self.branches_n]) |br| {
             pb[br[0] + 1] = 1;
         }
@@ -100,7 +100,7 @@ pub const BranchTemplate = struct {
     }
 
     pub fn info(self: BranchTemplate) [config.max_length]Info {
-        var infos = [_]Info{.{}} ** config.max_length;
+        var infos: [config.max_length]Info = @splat(.{});
 
         for (self.branches[0..self.branches_n]) |br| {
             infos[br[0]].is_branch = true;
@@ -124,7 +124,8 @@ pub const BranchTemplate = struct {
         }
         w.writeAll("\n") catch unreachable;
 
-        var pbuf = [_]u8{0} ** config.max_length;
+        var pbuf: [config.max_length]u8 = @splat(0);
+
         for (self.branches[0..self.branches_n], 0..) |br, bri| {
             pbuf[br[0] + 0] = @intCast(bri + 1);
             pbuf[br[0] + 1] = @intCast(0x80 + br[1]);

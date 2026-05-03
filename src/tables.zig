@@ -36,7 +36,7 @@ pub const base_defines: Defines = blk: {
         .a = 1,
         .x = 1,
         .y = 1,
-        .mem = [_]u8{1} ** tables.memory_size,
+        .mem = @splat(1),
         .flags = .{
             .carry = 1,
             .zero = 1,
@@ -110,7 +110,7 @@ pub const allowed_imm_constants_trg = blk: {
 };
 
 pub const imm_allowed_map = blk: {
-    var map = [_]u8{0} ** 256;
+    var map: [256]u8 = @splat(0);
     for (config.allowed_imm_constants) |azp| {
         map[azp] = 1;
     }
@@ -118,7 +118,7 @@ pub const imm_allowed_map = blk: {
 };
 
 pub const imm_allowed_map_trg = blk: {
-    var map = [_]u8{0} ** 256;
+    var map: [256]u8 = @splat(0);
     for (allowed_imm_constants_trg) |azp| {
         map[azp] = 1;
     }
@@ -126,7 +126,7 @@ pub const imm_allowed_map_trg = blk: {
 };
 
 pub const memory_size = blk: {
-    var mem = [_]bool{false} ** 256;
+    var mem: [256]bool = @splat(false);
     for (config.allowed_zp_memory) |azp| {
         mem[azp] = true;
     }
@@ -144,12 +144,12 @@ pub const memory_size = blk: {
 
 // A mapping table from ZP memory address to storage
 pub const zp_memory_map = blk: {
-    var mem = [_]bool{false} ** 256;
+    var mem: [256]bool = @splat(false);
     for (config.allowed_zp_memory) |azp| {
         mem[azp] = true;
     }
 
-    var map = [_]u8{255} ** 256;
+    var map: [256]u8 = @splat(255);
     var counter: usize = 0;
     for (mem, 0..) |m, i| {
         if (m) {

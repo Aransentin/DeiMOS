@@ -11,8 +11,8 @@ pub const Program = struct {
     pub fn init(size: u8) Program {
         return Program{
             .size = size,
-            .bytes = [_]u8{0} ** config.max_length,
-            .mask = [_]u1{0} ** config.max_length,
+            .bytes = @splat(0),
+            .mask = @splat(0),
         };
     }
 
@@ -21,8 +21,8 @@ pub const Program = struct {
         var writer: std.Io.Writer = .fixed(&buf);
         var w = &writer;
 
-        var visited = [_]bool{false} ** config.max_length;
-        var is_arg = [_]bool{false} ** config.max_length;
+        var visited: [config.max_length]bool = @splat(false);
+        var is_arg: [config.max_length]bool = @splat(false);
         scanVisited(self.bytes[0..self.size], self.mask[0..self.size], visited[0..self.size], is_arg[0..self.size], 0);
 
         for (0..self.size) |p| {
