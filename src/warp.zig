@@ -101,6 +101,7 @@ pub const Warp = struct {
 
         hasher.update(std.mem.asBytes(&self.defines));
         for (self.systems[0..self.systems_n]) |sys| {
+            hasher.update(std.mem.asBytes(&sys.test_index));
             hasher.update(std.mem.asBytes(&sys.a));
             hasher.update(std.mem.asBytes(&sys.x));
             hasher.update(std.mem.asBytes(&sys.y));
