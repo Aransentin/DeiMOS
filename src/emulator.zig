@@ -34,6 +34,8 @@ const State = struct {
 
 var states: [config.max_length]State = undefined;
 
+const test_idx_offset = if (config.test_cases > 13) 13 else 0;
+
 pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
     // Reset the warp states
     for (states[0..]) |*ss| {
@@ -68,7 +70,7 @@ pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
     while (true) {
         // todo: don't start with idx 0; do 13 or something and wrap
         states[0].system = System{};
-        config.test_generate(&states[0].system, 0);
+        config.test_generate(&states[0].system, test_idx_offset);
 
         while (true) {
             if (step(state, &candidate, branch_info)) |nstate| {
@@ -1252,7 +1254,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
         if (pc == candidate.size) {
             // Check success
             var start_sys = System{};
-            config.test_generate(&start_sys, test_idx);
+            config.test_generate(&start_sys, (test_idx + test_idx_offset) % config.test_cases);
             if (!config.test_verify(&start_sys, &sys)) {
                 return null;
             }
@@ -1269,7 +1271,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             cycles = 0;
             pc = 0;
             defines = tables.base_defines;
-            config.test_generate(&sys, test_idx);
+            config.test_generate(&sys, (test_idx + test_idx_offset) % config.test_cases);
             continue;
         }
 
