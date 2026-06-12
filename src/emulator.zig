@@ -6,14 +6,12 @@ const Program = @import("program.zig").Program;
 const System = @import("system.zig").System;
 const Defines = @import("system.zig").Defines;
 const op_gen = @import("op_gen.zig");
-const op_filter = @import("op_filter.zig");
 
 const State = struct {
     active: bool = false,
 
     lock0: bool = false,
     lock1: bool = false,
-    lock2: bool = false,
 
     parent: u8,
 
@@ -21,7 +19,7 @@ const State = struct {
     worst_cycles: u32,
     cycles: u32,
 
-    test_idx: usize,
+    test_idx: u32,
 
     op_class: op_gen.OpClass = .uninitialized,
     op_meta0: u8 = 0,
@@ -68,12 +66,11 @@ pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
     var candidate = prefix;
 
     while (true) {
-        // todo: don't start with idx 0; do 13 or something and wrap
         states[0].system = System{};
         config.test_generate(&states[0].system, test_idx_offset);
 
         while (true) {
-            if (step(state, &candidate, branch_info)) |nstate| {
+            if (step(state, &candidate)) |nstate| {
                 state = nstate;
             }
 
@@ -85,12 +82,7 @@ pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
                     // Unlock the states
                     if (state.lock0) candidate.mask[state.pc + 0] = 0;
                     if (state.lock1) candidate.mask[state.pc + 1] = 0;
-                    if (state.lock2) candidate.mask[state.pc + 2] = 0;
 
-                    // Not strictly neccesary, but clean up so printing bytes is less confusing
-                    if (state.lock0) candidate.bytes[state.pc + 0] = 0;
-                    if (state.lock1) candidate.bytes[state.pc + 1] = 0;
-                    if (state.lock2) candidate.bytes[state.pc + 2] = 0;
                     state.active = false;
 
                     state = &states[state.parent];
@@ -102,29 +94,17 @@ pub fn run(prefix: Program, branch_info: [config.max_length]BranchInfo) void {
     }
 }
 
-fn step(start_state: *State, candidate: *Program, branch_info: [config.max_length]BranchInfo) ?*State {
+fn step(start_state: *State, candidate: *Program) ?*State {
     const ins = @import("instructions.zig").instructions;
     const insmap = @import("instructions.zig").instructionmap;
 
     var sys: System = start_state.system;
-    var test_idx: usize = start_state.test_idx;
+    var test_idx: u32 = start_state.test_idx;
     var cycles = start_state.cycles;
     var worst_cycles = start_state.worst_cycles;
     var total_cycles = start_state.total_cycles;
     var defines = start_state.defines;
     var pc = start_state.pc;
-
-    // Filter generally pointless op combinations
-    var range_start: usize = 0;
-    for (branch_info[0..], 0..) |info, i| {
-        if (info.is_target) {
-            range_start = i;
-        }
-        if (i == pc) {
-            if (op_filter.run(candidate.bytes[range_start .. pc + 1])) return null;
-            break;
-        }
-    }
 
     while (true) {
         const last_instruction = (pc + 1 >= candidate.size) or (candidate.mask[pc + 1] == 0);
@@ -137,7 +117,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
             3 => {
                 if (last_instruction) return null;
             },
-            else => undefined,
+            else => unreachable,
         }
 
         const arg0 = if (last_instruction) 0 else candidate.bytes[pc + 1];
@@ -1253,9 +1233,8 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
         if (pc == candidate.size) {
             // Check success
-            var start_sys = System{};
-            config.test_generate(&start_sys, (test_idx + test_idx_offset) % config.test_cases);
-            if (!config.test_verify(&start_sys, &sys)) {
+            if (!config.test_verify(&sys, (test_idx + test_idx_offset) % config.test_cases)) {
+                // fail
                 return null;
             }
 
@@ -1287,10 +1266,12 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 switch (opsize) {
                     1 => continue,
                     2 => {
-                        const is_last_instruction = (pc + 1 >= candidate.size) or (candidate.mask[pc + 1] == 0);
-                        if (is_last_instruction) return null;
+                        if (pc + 1 >= candidate.size) return null;
                         if (candidate.mask[pc + 1] == 1) continue; // We're in previously genned code
-                        // OK this case can never happen in practice. Fall through anyway.
+
+                        // Jumping into a 2-byte of argument and we ourselves are a 2-byte op, and our argument hasn't been defined.
+                        // Never happens in practice.
+                        return null;
                     },
                     3 => return null, //3-byte ops are TODO
                     else => unreachable,

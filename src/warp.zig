@@ -36,10 +36,7 @@ pub const Warp = struct {
 
     pub fn checkSuccess(self: *Warp) bool {
         for (self.systems[0..self.systems_n]) |sys| {
-            var start_sys = System{};
-            start_sys.test_index = sys.test_index;
-            config.test_generate(&start_sys, sys.test_index);
-            if (!config.test_verify(&start_sys, &sys)) return false;
+            if (!config.test_verify(&sys, sys.test_index)) return false;
         }
         return true;
     }

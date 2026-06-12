@@ -33,10 +33,6 @@ pub const Flags = packed struct(u8) {
 };
 
 pub const System = struct {
-    // test_index: if (in_warp) tables.TestIndex else void,
-    // pc: if (!in_warp) u8 else void,
-    // defines: if (!in_warp) Defines else void,
-
     test_index: tables.TestIndex = 0,
     a: u8 = 0,
     x: u8 = 0,

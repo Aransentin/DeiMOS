@@ -9,7 +9,6 @@ const Defines = @import("system.zig").Defines;
 const successCallback = @import("root").successCallback;
 // const emulator = @import("emulator.zig");
 const op_gen = @import("op_gen.zig");
-const op_filter = @import("op_filter.zig");
 
 // Static storage for candidates to send onwards to Phobos
 var candidate_mem: []Program = &[0]Program{};
@@ -54,7 +53,6 @@ pub const State = struct {
 
     lock0: bool = false,
     lock1: bool = false,
-    lock2: bool = false,
 
     parent: u8,
     generation: u8,
@@ -127,12 +125,7 @@ fn brute(length: usize, branch_info: [config.max_length]BranchInfo, prefilter: b
             // Unlock the states
             if (state.lock0) candidate.mask[state.warp.pc + 0] = 0;
             if (state.lock1) candidate.mask[state.warp.pc + 1] = 0;
-            if (state.lock2) candidate.mask[state.warp.pc + 2] = 0;
 
-            // Not strictly neccesary, but clean up so printing bytes is less confusing
-            if (state.lock0) candidate.bytes[state.warp.pc + 0] = 0;
-            if (state.lock1) candidate.bytes[state.warp.pc + 1] = 0;
-            if (state.lock2) candidate.bytes[state.warp.pc + 2] = 0;
             state.active = false;
 
             state = &states[state.parent];
@@ -165,16 +158,18 @@ const WarpFilterValue = struct {
     best_pc_used: bool = false,
 
     // Debug
-    candidate: Program,
+    // candidate: Program,
 };
 
 var warp_filter: std.AutoHashMap(u64, WarpFilterValue) = undefined;
 
 fn addToFilteredWarps(warp: *Warp, cycles: u32, candidate: *Program) void {
+    _ = candidate;
 
     // yes this isn't ideal and can result in missed optimizations in some everett branch
     // ... but carrying along 65536 systems for each entry is unworkable.
     // todo: prevent double-hashing
+
     const result = warp_filter.getOrPut(warp.hash()) catch unreachable;
     const vp = result.value_ptr;
 
@@ -185,12 +180,12 @@ fn addToFilteredWarps(warp: *Warp, cycles: u32, candidate: *Program) void {
         if (vp.best_pc > warp.pc) {
             vp.best_pc = warp.pc;
         }
-        vp.candidate = candidate.*;
+        // vp.candidate = candidate.*;
     } else {
         vp.* = .{
             .best_cycles = cycles,
             .best_pc = warp.pc,
-            .candidate = candidate.*,
+            // .candidate = candidate.*,
         };
     }
 }
@@ -202,6 +197,7 @@ const FindFilterListResult = enum {
 };
 
 fn findBetterWarpInFilterList(warp: *const Warp, cycles: u32, candidate: *Program, prefilter: bool) FindFilterListResult {
+    _ = candidate; // autofix
     const result = warp_filter.getPtr(warp.hash()) orelse return .none;
 
     const is_smaller = result.best_pc < warp.pc;
@@ -239,17 +235,12 @@ fn findBetterWarpInFilterList(warp: *const Warp, cycles: u32, candidate: *Progra
 
     // Sanity check
     if (prefilter == false) {
-        //std.log.info("BOOM!", .{});
-        //std.log.info("=== [size: {}, cycles: {}] ===", .{ warp.pc, cycles });
-        //candidate.print() catch {};
-        //std.log.info("-> size: {}, cycles: {}", .{ fcdw.pc_min, fcdw.cycles_min });
-        //fcdw.program.print() catch {};
         unreachable;
     }
 
     result.best_pc = if (result.best_pc < warp.pc) result.best_pc else warp.pc;
     result.best_cycles = if (result.best_cycles < cycles) result.best_cycles else cycles;
-    result.candidate = candidate.*;
+    // result.candidate = candidate.*;
     return .replaced;
 }
 
@@ -268,18 +259,6 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
         }
         break :blk true;
     };
-
-    // Filter generally pointless op combinations
-    var range_start: usize = 0;
-    for (branch_info[0..], 0..) |info, i| {
-        if (info.is_target) {
-            range_start = i;
-        }
-        if (i == warp.pc) {
-            if (op_filter.run(candidate.bytes[range_start .. warp.pc + 1])) return null;
-            break;
-        }
-    }
 
     while (true) {
         const last_instruction = (warp.pc + 1 >= candidate.size) or (candidate.mask[warp.pc + 1] == 0);
@@ -1580,7 +1559,9 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
         if (is_before_first_target and warp.restart_iteration == 0) {
             if (prefilter) {
                 switch (findBetterWarpInFilterList(&warp, cycles, candidate, prefilter)) {
-                    .found_better => return null,
+                    .found_better => {
+                        return null;
+                    },
                     .replaced => {},
                     .none => {
                         addToFilteredWarps(&warp, cycles, candidate);
@@ -1664,10 +1645,12 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 switch (opsize) {
                     1 => continue,
                     2 => {
-                        const is_last_instruction = (warp.pc + 1 >= candidate.size) or (candidate.mask[warp.pc + 1] == 0);
-                        if (is_last_instruction) return null;
+                        if (warp.pc + 1 >= candidate.size) return null;
                         if (candidate.mask[warp.pc + 1] == 1) continue; // We're in previously genned code
-                        // OK this case can never happen in practice. Fall through anyway.
+
+                        // Jumping into a 2-byte of argument and we ourselves are a 2-byte op, and our argument hasn't been defined.
+                        // Never happens in practice.
+                        return null;
                     },
                     3 => return null, //3-byte ops are TODO
                     else => unreachable,

@@ -67,7 +67,9 @@ pub fn test_run(in: *const System, out: *System) void {
     out.a = @popCount(in.a);
 }
 
-pub fn test_verify(in: *const System, out: *const System) bool {
-    if (out.a == @popCount(in.a)) return true;
+pub fn test_verify(system: *const System, idx: usize) bool {
+    const in_a: u8 = @intCast(idx);
+
+    if (system.a == @popCount(in_a)) return true;
     return false;
 }

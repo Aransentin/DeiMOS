@@ -52,7 +52,7 @@ pub fn incOp(state: anytype, pc: u8, candidate: *Program, branch_info: [config.m
         return true;
     }
 
-    // Byte 0 locked, we are a shadow instruction. Generate arguments only.
+    // Byte 0 locked by someone else, we are a 2-byte shadow instruction. Generate arguments only.
     if (state.lock0 == false) {
         std.log.err("A case I thought was impossible in practice turns out not to be!", .{});
         candidate.print() catch {};

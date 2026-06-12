@@ -1392,7 +1392,6 @@ pub const instructions: struct {
         .op = 0xAB,
         .unofficial = true,
         .unstable = true,
-        .implemented = true,
     },
 
     rla_zp: Instruction = .{
