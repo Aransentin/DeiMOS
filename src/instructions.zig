@@ -2064,12 +2064,12 @@ pub const instructions: struct {
 
 pub const instructionmap = blk: {
     var ops: [256]Instruction = @splat(.{ .name = "", .mode = .accumulator, .op = 0 });
-    for (@typeInfo(@TypeOf(instructions)).@"struct".fields) |field| {
-        const value = field.defaultValue().?;
+    const info = @typeInfo(@TypeOf(instructions)).@"struct";
+    for (info.field_types, info.field_attrs) |field_type, field_attr| {
+        const value = field_attr.defaultValue(field_type).?;
         if (ops[value.op].op != 0) @compileError("Multiple instructions with same op");
         ops[value.op] = value;
     }
     for (ops[1..]) |op| if (op.op == 0) @compileError("Unassigned operation");
-
     break :blk ops;
 };
