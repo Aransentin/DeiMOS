@@ -499,7 +499,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
                 if (warp.defines.carry == 0) return null;
 
                 const ns = warp.sortOnFlag("carry", true);
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null;
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null;
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.carry == 0) {
@@ -520,7 +520,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("carry", false);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
 
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
@@ -541,7 +541,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("zero", false);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.zero == 1) {
@@ -561,7 +561,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("zero", true);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.zero == 0) {
@@ -581,7 +581,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("negative", false);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.negative == 1) {
@@ -601,7 +601,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("negative", true);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.negative == 0) {
@@ -621,7 +621,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("overflow", false);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.overflow == 1) {
@@ -641,7 +641,7 @@ fn step(start_state: *State, candidate: *Program, branch_info: [config.max_lengt
 
                 const ns = warp.sortOnFlag("overflow", true);
 
-                if (is_before_first_target and warp.restart_iteration == 0 and ns == 0 or ns == warp.systems_n) return null; // and not loop 2 obviously
+                if (is_before_first_target and warp.restart_iteration == 0 and (ns == 0 or ns == warp.systems_n)) return null; // and not loop 2 obviously
                 warp.systems_n = if (ns == 0) warp.systems_n else ns;
 
                 if (warp.systems[0].flags.overflow == 0) {

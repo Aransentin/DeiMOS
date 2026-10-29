@@ -26,7 +26,7 @@ pub fn main(init: std.process.Init.Minimal) !void {
             if (npid < 0) return error.ForkFailed;
             if (npid > 0) continue;
 
-            const sig_kill: usize = @intFromEnum(std.os.linux.SIG.KILL);
+            const sig_kill: usize = @backingInt(std.os.linux.SIG.KILL);
             _ = std.posix.prctl(.SET_PDEATHSIG, .{sig_kill}) catch {};
 
             const child_args = [_:null]?[*:0]const u8{ "phobos", "127.0.0.1", null };
