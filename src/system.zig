@@ -21,7 +21,7 @@ pub const Defines = struct {
     }
 };
 
-pub const Flags = packed struct(u8) {
+pub const Flags = bitpack struct(u8) {
     carry: u1 = 0,
     zero: u1 = 0,
     interrupt_disable: u1 = 0,
